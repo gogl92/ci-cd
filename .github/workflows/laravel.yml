@@ -33,3 +33,33 @@ jobs:
         DB_CONNECTION: sqlite
         DB_DATABASE: database/database.sqlite
       run: vendor/bin/phpunit
+
+  codespace-deploy:
+    needs: laravel-tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Deploy to Codespace
+      run: |
+        gh codespace create -r {{ github.repository }} -b {{ github.ref }} -d "Staging environment for pr-{{ github.event.pull_request.number }}"
+    - name: Set Codespace URL
+      run: |
+        echo "CODESPACE_URL=$(gh codespace list -q -l pr-{{ github.event.pull_request.number }} -f url)" >> $GITHUB_ENV
+    - name: Execute artisan serve inside the codespace
+      run: |
+        gh codespace run -- codespace exec -- bash -c "php artisan serve"
+    # make available the codespace url as an output
+    - name: Set output
+      id: codespace-url
+      run: echo "::set-output name=codespace-url::$(gh codespace list -q -l pr-{{ github.event.pull_request.number }} -f url)"
+    # comment the codespace url on the pull request
+    - name: Comment on PR
+      uses: actions/github-script@v4
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `Codespace URL: ${process.env.CODESPACE_URL}`
+          })
