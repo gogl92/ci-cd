@@ -40,7 +40,7 @@ jobs:
     steps:
     - name: Deploy to Codespace
       run: |
-        gh codespace create -R {{ github.repository }} -b {{ github.ref }} -d "staging-pr-{{ github.event.pull_request.number }}"
+        gh codespace create --repo {{ github.repository }} --branch {{ github.ref }} --display-name "staging-pr-{{ github.event.pull_request.number }}"
     - name: Set Codespace URL
       run: |
         echo "CODESPACE_URL=$(gh codespace list -q -l staging-pr-{{ github.event.pull_request.number }} -f url)" >> $GITHUB_ENV
