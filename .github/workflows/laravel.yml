@@ -40,6 +40,7 @@ jobs:
     steps:
     - name: Deploy to Codespace
       run: |
+        gh auth login -s codespace
         gh codespace create --repo="{{ github.repository }}" --branch="{{ github.ref }}" --machine="basicLinux32gb"
     - name: Set Codespace URL
       run: |
